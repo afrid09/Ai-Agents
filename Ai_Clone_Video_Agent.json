@@ -1,0 +1,538 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.heygen.com/v2/video/generate",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Api-Key",
+              "value": "MzM2ZWYxMjJmYWYwNDA3NTlhYTY0MTgzNTAwNmFhNDUtMTc1ODg5ODI0Mw=="
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"video_inputs\": [\n    {\n      \"character\": {\n        \"type\": \"avatar\",\n        \"avatar_id\": \"b4bdad91bb5549c6b1f79992e44fa518\",\n        \"avatar_style\": \"normal\"\n      },\n      \"voice\": {\n        \"type\": \"text\",\n        \"input_text\": \"{{ $json.CombinedMessage }}\",\n        \"voice_id\": \"2ea97f7ac81043ada49b36a0579c4170\",\n        \"speed\": 1.0\n      }\n    }\n  ],\n  \"dimension\": {\n    \"width\": 1280,\n    \"height\": 720\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -80,
+        272
+      ],
+      "id": "51003590-8f06-4a92-8ccf-86c8186cfab3",
+      "name": "Generate Video"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        96,
+        272
+      ],
+      "id": "7b5b0127-2260-445a-a23d-e0a200d9ae98",
+      "name": "Wait",
+      "webhookId": "999ce05d-e0ae-4520-b04a-2ac39e258acb"
+    },
+    {
+      "parameters": {
+        "url": "https://api.heygen.com/v1/video_status.get",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "video_id",
+              "value": "={{ $('Generate Video').item.json.data.video_id.trim() }}"
+            },
+            {}
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Api-Key",
+              "value": "MzM2ZWYxMjJmYWYwNDA3NTlhYTY0MTgzNTAwNmFhNDUtMTc1ODg5ODI0Mw=="
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        288,
+        272
+      ],
+      "id": "9cbcc7c7-bba5-4cb1-acfb-7c15e9a44a6b",
+      "name": "Get Video"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "5f4b9611-276a-4e60-aeb3-727ea3a362e9",
+              "leftValue": "={{ $json.data.video_url }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        464,
+        272
+      ],
+      "id": "b243237e-65cb-4016-b0be-80dae97ebf1d",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        352,
+        480
+      ],
+      "id": "000f685c-a8da-4e6d-8fde-33eac8e07035",
+      "name": "Wait1",
+      "webhookId": "69a6a99f-6dbc-473f-a002-4ea1b5aa3be7"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.data.video_url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        672,
+        192
+      ],
+      "id": "7490c7c0-a4b6-4d2b-ba68-da91251472d8",
+      "name": "Download Video"
+    },
+    {
+      "parameters": {
+        "operation": "sendVideo",
+        "chatId": "={{ $('Listen for incoming events').item.json.message.from.id }}",
+        "file": "={{ $json.data.video_url }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        832,
+        176
+      ],
+      "id": "e423ff1b-d2ac-4d08-a0c7-30a32325e3f0",
+      "name": "Telegram",
+      "webhookId": "83e4d92e-87ac-4264-9971-b52b76fd2077",
+      "credentials": {
+        "telegramApi": {
+          "id": "PTFL37Fi3ipPAvPT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "377bceb3-e808-4079-b393-1f3363de69e3",
+      "name": "Listen for incoming events",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "position": [
+        -880,
+        320
+      ],
+      "webhookId": "322dce18-f93e-4f86-b9b1-3305519b7834",
+      "typeVersion": 1,
+      "credentials": {
+        "telegramApi": {
+          "id": "PTFL37Fi3ipPAvPT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{$json.message.voice.file_id}}",
+        "additionalFields": {}
+      },
+      "id": "c805222d-a16f-4b7d-8cdd-d1f3600eada8",
+      "name": "Download voice file",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        -464,
+        496
+      ],
+      "typeVersion": 1.2,
+      "webhookId": "08250cc3-cbfe-4cb0-9b83-942d77d12906",
+      "credentials": {
+        "telegramApi": {
+          "id": "PTFL37Fi3ipPAvPT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bccbce0a-7786-49c9-979a-7a285cb69f78",
+              "name": "CombinedMessage",
+              "type": "string",
+              "value": "={{ $json.message && $json.message.text ? $json.message.text : ($json.text ? $json.text : '') }}"
+            },
+            {
+              "id": "5b1fc9f5-1408-4099-88cc-a23725c9eddb",
+              "name": "Message Type ",
+              "type": "string",
+              "value": "={{ $json?.message?.text && !$json?.text ? \"text query\" : (!$json?.message?.text && $json?.text ? \"voice message\" : \"unknown type message\") }}"
+            },
+            {
+              "id": "1e9a17fa-ec5d-49dc-9ff6-1f28b57fb02e",
+              "name": "Source Type",
+              "type": "string",
+              "value": "={{ $('Listen for incoming events').item.json.message.forward_origin ? \" forwarded\" : \"\" }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8307ee89-08e9-49e2-8ea3-9e76bf87b902",
+      "name": "Combine content and set properties",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -272,
+        272
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Listen for incoming events').first().json.message.from.id }}",
+        "text": "=Sorry, {{ $('Listen for incoming events').first().json.message.from.first_name }}! This command is not supported yet. Please send text or voice messages.",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "1f787feb-66f7-4fb9-854c-44ea3280363d",
+      "name": "Send error message",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        -656,
+        592
+      ],
+      "typeVersion": 1.2,
+      "webhookId": "c219800e-42ba-4ca6-ba25-07eda647ea98",
+      "credentials": {
+        "telegramApi": {
+          "id": "PTFL37Fi3ipPAvPT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "chatId": "={{ $('Listen for incoming events').first().json.message.from.id }}"
+      },
+      "id": "5cc38a95-a96b-44bc-b0da-ed9ed2040dc6",
+      "name": "Send Typing action",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        -624,
+        128
+      ],
+      "typeVersion": 1.2,
+      "webhookId": "fd992425-5d02-40c8-a179-c0e2b4f98d97",
+      "credentials": {
+        "telegramApi": {
+          "id": "PTFL37Fi3ipPAvPT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    },
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "dd41bbf0-bee0-450b-9160-b769821a4abc",
+                    "operator": {
+                      "type": "object",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "leftValue": "={{ $json.message.voice}}",
+                    "rightValue": ""
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Voice"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "e1046ef3-d231-4729-a473-74b450a6b88b",
+      "name": "Determine content type",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        -640,
+        336
+      ],
+      "typeVersion": 3.2
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {
+          "language": "",
+          "temperature": 0.7
+        }
+      },
+      "id": "bbc61ac1-d672-4db7-b779-9fe72cad0211",
+      "name": "Convert audio to text",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [
+        -304,
+        480
+      ],
+      "typeVersion": 1.5,
+      "credentials": {
+        "openAiApi": {
+          "id": "S36EjotwRn08sOLj",
+          "name": "OpenAi account 2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Generate Video": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Get Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Video": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Download Video",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Get Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Video": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Listen for incoming events": {
+      "main": [
+        [
+          {
+            "node": "Determine content type",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Typing action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download voice file": {
+      "main": [
+        [
+          {
+            "node": "Convert audio to text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine content and set properties": {
+      "main": [
+        [
+          {
+            "node": "Generate Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Determine content type": {
+      "main": [
+        [
+          {
+            "node": "Combine content and set properties",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Download voice file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send error message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert audio to text": {
+      "main": [
+        [
+          {
+            "node": "Combine content and set properties",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "b69715f98843d0719ab12c7f22095b24f64cf56aeab537cdf35b0b198d04082f"
+  }
+}
